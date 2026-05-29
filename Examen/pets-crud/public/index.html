@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema de Gestión de Mascotas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #f4f6f8;
+      color: #222;
+    }
+
+    header {
+      background: #2d6a4f;
+      color: white;
+      padding: 20px 30px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 26px;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      opacity: 0.9;
+    }
+
+    .hub {
+      margin-top: 10px;
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: #c1121f;
+      font-size: 13px;
+    }
+
+    .hub.ok {
+      background: #52b788;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      padding: 20px 30px;
+    }
+
+    .stat {
+      background: white;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 26px;
+      color: #2d6a4f;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 20px;
+      padding: 0 30px 30px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #2d6a4f;
+      font-size: 20px;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: bold;
+      display: block;
+      margin-top: 12px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      margin-top: 5px;
+      padding: 10px;
+      border: 1px solid #ccd5ae;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-primary {
+      background: #2d6a4f;
+      color: white;
+      margin-top: 16px;
+      width: 100%;
+    }
+
+    .btn-secondary {
+      background: #e9ecef;
+      color: #222;
+      margin-top: 8px;
+      width: 100%;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .toolbar input {
+      margin-top: 0;
+    }
+
+    .pet-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .pet-card {
+      border: 1px solid #d8f3dc;
+      border-left: 6px solid #2d6a4f;
+      border-radius: 10px;
+      padding: 14px;
+      background: #fff;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+    }
+
+    .pet-card h3 {
+      margin: 0;
+      color: #1b4332;
+    }
+
+    .pet-card p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 12px;
+      background: #d8f3dc;
+      color: #1b4332;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .edit {
+      background: #ffb703;
+      color: #222;
+    }
+
+    .delete {
+      background: #d62828;
+      color: white;
+    }
+
+    .empty {
+      text-align: center;
+      color: #777;
+      padding: 40px;
+    }
+
+    .log {
+      margin-top: 15px;
+      background: #f1f3f5;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>🐾 Sistema de Gestión de Mascotas</h1>
+    <p>CRUD de mascotas conectado al epn-event-manager</p>
+    <span class="hub" id="hubStatus">HUB: verificando...</span>
+  </header>
+
+  <section class="stats">
+    <div class="stat">
+      <strong id="totalPets">0</strong>
+      Total mascotas
+    </div>
+    <div class="stat">
+      <strong id="activePets">0</strong>
+      Activas
+    </div>
+    <div class="stat">
+      <strong id="treatmentPets">0</strong>
+      En tratamiento
+    </div>
+    <div class="stat">
+      <strong id="lostPets">0</strong>
+      Perdidas
+    </div>
+  </section>
+
+  <main class="layout">
+    <section class="card">
+      <h2 id="formTitle">Registrar mascota</h2>
+
+      <input type="hidden" id="petId">
+
+      <label>Nombre *</label>
+      <input id="name" type="text" maxlength="80" placeholder="Ej: Max">
+
+      <div class="row">
+        <div>
+          <label>Especie *</label>
+          <select id="species">
+            <option value="">Seleccionar...</option>
+            <option value="perro">Perro</option>
+            <option value="gato">Gato</option>
+            <option value="ave">Ave</option>
+            <option value="conejo">Conejo</option>
+            <option value="hamster">Hámster</option>
+            <option value="pez">Pez</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Edad</label>
+          <input id="age" type="number" min="0" max="50" placeholder="Ej: 3">
+        </div>
+      </div>
+
+      <label>Raza</label>
+      <input id="breed" type="text" maxlength="80" placeholder="Ej: Labrador">
+
+      <label>Dueño *</label>
+      <input id="owner" type="text" maxlength="80" placeholder="Ej: Gabriela Echeverría">
+
+      <label>Teléfono</label>
+      <input id="phone" type="text" maxlength="20" placeholder="Ej: 0999999999">
+
+      <label>Estado</label>
+      <select id="status">
+        <option value="activo">Activo</option>
+        <option value="en_tratamiento">En tratamiento</option>
+        <option value="adoptado">Adoptado</option>
+        <option value="perdido">Perdido</option>
+        <option value="inactivo">Inactivo</option>
+      </select>
+
+      <label>Descripción</label>
+      <textarea id="description" maxlength="300" placeholder="Observaciones de la mascota..."></textarea>
+
+      <button class="btn-primary" onclick="savePet()" id="saveBtn">Guardar mascota</button>
+      <button class="btn-secondary" onclick="clearForm()" id="cancelBtn" style="display:none;">Cancelar edición</button>
+
+      <div class="log" id="log">
+        Sistema iniciado...
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Listado de mascotas</h2>
+
+      <div class="toolbar">
+        <input id="search" type="text" placeholder="Buscar por nombre, especie, dueño..." oninput="renderPets()">
+        <select id="filterStatus" onchange="renderPets()">
+          <option value="all">Todos</option>
+          <option value="activo">Activos</option>
+          <option value="en_tratamiento">En tratamiento</option>
+          <option value="adoptado">Adoptados</option>
+          <option value="perdido">Perdidos</option>
+          <option value="inactivo">Inactivos</option>
+        </select>
+      </div>
+
+      <div class="pet-list" id="petList"></div>
+    </section>
+  </main>
+
+  <script>
+    const API = 'http://localhost:4002';
+
+
+    // Clave de API para autenticación (debe coincidir con la configurada en el servidor)
+    const API_KEY = 'fis-epn-2026';
+
+    function authHeaders(extraHeaders = {}) {
+      return {
+        'X-FIS-EPN-KEY': API_KEY,
+        ...extraHeaders,
+      };
+    }
+
+
+    let pets = [];
+
+    function addLog(message) {
+      const log = document.getElementById('log');
+      const time = new Date().toLocaleTimeString('es-EC');
+      log.innerHTML += `<br>[${time}] ${message}`;
+      log.scrollTop = log.scrollHeight;
+    }
+
+    async function checkHealth() {
+      try {
+        const response = await fetch(`${API}/health`);
+        const data = await response.json();
+
+        const hubStatus = document.getElementById('hubStatus');
+
+        if (data.hub === 'connected') {
+          hubStatus.textContent = 'HUB: conectado';
+          hubStatus.className = 'hub ok';
+        } else {
+          hubStatus.textContent = 'HUB: offline';
+          hubStatus.className = 'hub';
+        }
+      } catch {
+        document.getElementById('hubStatus').textContent = 'API: offline';
+      }
+    }
+
+    async function loadPets() {
+      try {
+        //const response = await fetch(`${API}/pets`);
+        //pets-crud/server.js ha sido actualizado para requerir autenticación en esta ruta, por lo que ahora se incluyen los headers de autenticación
+        const response = await fetch(`${API}/pets`, {
+          headers: authHeaders()
+        });
+        
+        pets = await response.json();
+
+        renderPets();
+        updateStats();
+        addLog(`QUERY: ${pets.length} mascotas cargadas`);
+      } catch {
+        addLog('Error cargando mascotas');
+      }
+    }
+
+    async function savePet() {
+      const id = document.getElementById('petId').value;
+
+      const pet = {
+        name: document.getElementById('name').value.trim(),
+        species: document.getElementById('species').value,
+        breed: document.getElementById('breed').value.trim(),
+        age: document.getElementById('age').value,
+        owner: document.getElementById('owner').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        status: document.getElementById('status').value,
+        description: document.getElementById('description').value.trim()
+      };
+
+      if (!pet.name || !pet.species || !pet.owner) {
+        alert('Nombre, especie y dueño son obligatorios');
+        return;
+      }
+
+      try {
+        let response;
+
+        if (id) {
+          response = await fetch(`${API}/pets/${id}`, {
+            method: 'PUT',
+           // headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders({ 'Content-Type': 'application/json' }),
+            body: JSON.stringify(pet)
+          });
+        } else {
+          response = await fetch(`${API}/pets`, {
+            method: 'POST',
+            // headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders({ 'Content-Type': 'application/json' }),
+            body: JSON.stringify(pet)
+          });
+        }
+
+        if (!response.ok) {
+          const error = await response.json();
+          alert(error.error);
+          return;
+        }
+
+        addLog(id ? 'UPDATE: mascota actualizada' : 'CREATE: mascota registrada');
+        clearForm();
+        await loadPets();
+      } catch {
+        alert('Error guardando mascota');
+      }
+    }
+
+    function editPet(id) {
+      const pet = pets.find(item => item.id === id);
+
+      if (!pet) return;
+
+      document.getElementById('petId').value = pet.id;
+      document.getElementById('name').value = pet.name;
+      document.getElementById('species').value = pet.species;
+      document.getElementById('breed').value = pet.breed;
+      document.getElementById('age').value = pet.age;
+      document.getElementById('owner').value = pet.owner;
+      document.getElementById('phone').value = pet.phone;
+      document.getElementById('status').value = pet.status;
+      document.getElementById('description').value = pet.description;
+
+      document.getElementById('formTitle').textContent = `Editar mascota ${pet.id}`;
+      document.getElementById('saveBtn').textContent = 'Actualizar mascota';
+      document.getElementById('cancelBtn').style.display = 'block';
+
+      //fetch(`${API}/pets/${id}`).catch(() => {});
+      
+      fetch(`${API}/pets/${id}`, {
+        headers: authHeaders()
+      }).catch(() => {});
+
+      addLog(`QUERY: consultando ${pet.name}`);
+    }
+
+    async function deletePet(id) {
+      const pet = pets.find(item => item.id === id);
+
+      if (!pet) return;
+
+      const confirmDelete = confirm(`¿Eliminar a ${pet.name}?`);
+
+      if (!confirmDelete) return;
+
+      try {
+        /*
+        const response = await fetch(`${API}/pets/${id}`, {
+          method: 'DELETE'
+        });
+        */
+      //pets-crud/server.js ha sido actualizado para requerir autenticación en esta ruta, por lo que ahora se incluyen los headers de autenticación
+        const response = await fetch(`${API}/pets/${id}`, {
+          method: 'DELETE',
+          headers: authHeaders()
+        });
+
+
+        if (!response.ok) {
+          alert('No se pudo eliminar');
+          return;
+        }
+
+        addLog(`DELETE: ${pet.name} eliminado`);
+        await loadPets();
+      } catch {
+        alert('Error eliminando mascota');
+      }
+    }
+
+    function clearForm() {
+      document.getElementById('petId').value = '';
+      document.getElementById('name').value = '';
+      document.getElementById('species').value = '';
+      document.getElementById('breed').value = '';
+      document.getElementById('age').value = '';
+      document.getElementById('owner').value = '';
+      document.getElementById('phone').value = '';
+      document.getElementById('status').value = 'activo';
+      document.getElementById('description').value = '';
+
+      document.getElementById('formTitle').textContent = 'Registrar mascota';
+      document.getElementById('saveBtn').textContent = 'Guardar mascota';
+      document.getElementById('cancelBtn').style.display = 'none';
+    }
+
+
+    // Función para escapar caracteres HTML y prevenir XSS
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+
+
+    function renderPets() {
+      const list = document.getElementById('petList');
+      const search = document.getElementById('search').value.toLowerCase();
+      const filterStatus = document.getElementById('filterStatus').value;
+
+      let filtered = pets;
+
+      if (filterStatus !== 'all') {
+        filtered = filtered.filter(pet => pet.status === filterStatus);
+      }
+
+      if (search) {
+        filtered = filtered.filter(pet =>
+          `${pet.name} ${pet.species} ${pet.breed} ${pet.owner}`.toLowerCase().includes(search)
+        );
+      }
+
+      if (!filtered.length) {
+        list.innerHTML = '<div class="empty">No hay mascotas registradas</div>';
+        return;
+      }
+
+      list.innerHTML = filtered.map(pet => `
+        <div class="pet-card">
+          <div>
+            <h3>${escapeHtml(pet.name)}</h3>
+            <p><span class="badge">${escapeHtml(pet.status)}</span></p>
+            <p><strong>ID:</strong> ${escapeHtml(pet.id)}</p>
+            <p><strong>Especie:</strong> ${escapeHtml(pet.species)}</p>
+            <p><strong>Raza:</strong> ${pet.breed ? escapeHtml(pet.breed) : 'No especificada'}</p>
+            <p><strong>Edad:</strong> ${pet.age === '' ? 'No especificada' : escapeHtml(pet.age) + ' años'}</p>
+            <p><strong>Dueño:</strong> ${escapeHtml(pet.owner)}</p>
+            <p><strong>Teléfono:</strong> ${pet.phone ? escapeHtml(pet.phone) : 'No registrado'}</p>
+            <p><strong>Descripción:</strong> ${pet.description ? escapeHtml(pet.description) : 'Sin descripción'}</p>
+          </div>
+
+          <div class="actions">
+            <button class="edit" onclick="editPet('${escapeHtml(pet.id)}')">Editar</button>
+            <button class="delete" onclick="deletePet('${escapeHtml(pet.id)}')">Eliminar</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateStats() {
+      document.getElementById('totalPets').textContent = pets.length;
+      document.getElementById('activePets').textContent = pets.filter(pet => pet.status === 'activo').length;
+      document.getElementById('treatmentPets').textContent = pets.filter(pet => pet.status === 'en_tratamiento').length;
+      document.getElementById('lostPets').textContent = pets.filter(pet => pet.status === 'perdido').length;
+    }
+
+    checkHealth();
+    loadPets();
+
+    setInterval(checkHealth, 8000);
+  </script>
+</body>
+</html>
